@@ -1,32 +1,57 @@
-import React, { useState } from "react";
-import ItemForm from "./ItemForm";
-import Filter from "./Filter";
-import Item from "./Item";
+import React, { useEffect, useState } from 'react'
+import ItemForm from './ItemForm'
+import Filter from './Filter'
+import Item from './Item'
 
-function ShoppingList({ items }) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+function ShoppingList({ items, setItems }) {
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [filteredItems, setFilteredItems] = useState([])
+  const [itemsToDisplay, setItemsToDisplay] = useState([])
+  const [search, setSearch] = useState('')
 
   function handleCategoryChange(event) {
-    setSelectedCategory(event.target.value);
+    setSelectedCategory(event.target.value)
   }
+  useEffect(() => {
+    setItemsToDisplay(
+      items.filter((item) => {
+        if (selectedCategory === 'All') return true
+        return item.category === selectedCategory
+      })
+    )
+  }, [items, selectedCategory])
 
-  const itemsToDisplay = items.filter((item) => {
-    if (selectedCategory === "All") return true;
+  useEffect(() => {
+    if (search !== '') {
+      const filtered = itemsToDisplay.filter((item) =>
+        item.name.toLowerCase().includes(search.toLowerCase())
+      )
+      setFilteredItems(filtered)
+    } else {
+      setFilteredItems(itemsToDisplay)
+    }
+  }, [itemsToDisplay, search])
 
-    return item.category === selectedCategory;
-  });
+  const handleNewItem = (e, item) => {
+    e.preventDefault()
+    setItems([...items, item])
+  }
 
   return (
     <div className="ShoppingList">
-      <ItemForm />
-      <Filter onCategoryChange={handleCategoryChange} />
+      <ItemForm onItemFormSubmit={handleNewItem} />
+      <Filter
+        onCategoryChange={handleCategoryChange}
+        search={search}
+        setSearch={setSearch}
+      />
       <ul className="Items">
-        {itemsToDisplay.map((item) => (
+        {filteredItems.map((item) => (
           <Item key={item.id} name={item.name} category={item.category} />
         ))}
       </ul>
     </div>
-  );
+  )
 }
 
-export default ShoppingList;
+export default ShoppingList
